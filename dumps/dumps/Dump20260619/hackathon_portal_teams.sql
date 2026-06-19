@@ -1,0 +1,62 @@
+-- MySQL dump 10.13  Distrib 8.0.45, for Win64 (x86_64)
+--
+-- Host: localhost    Database: hackathon_portal
+-- ------------------------------------------------------
+-- Server version	8.0.45
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `teams`
+--
+
+DROP TABLE IF EXISTS `teams`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `teams` (
+  `team_id` bigint NOT NULL AUTO_INCREMENT,
+  `created_at` datetime(6) DEFAULT NULL,
+  `team_name` varchar(255) DEFAULT NULL,
+  `event_id` bigint DEFAULT NULL,
+  `leader_user_id` bigint DEFAULT NULL,
+  `problem_id` bigint DEFAULT NULL,
+  PRIMARY KEY (`team_id`),
+  UNIQUE KEY `uk_teams_team_name` (`team_name`),
+  UNIQUE KEY `uk_teams_leader_user` (`leader_user_id`),
+  KEY `FKsjcq76oa92bm6gjbebp2spajm` (`event_id`),
+  KEY `FKsikyqgbabhyibg9avexad5rj2` (`problem_id`),
+  CONSTRAINT `FK1h9llgxlemilncvt2ru5vpruh` FOREIGN KEY (`leader_user_id`) REFERENCES `users` (`user_id`),
+  CONSTRAINT `FKsikyqgbabhyibg9avexad5rj2` FOREIGN KEY (`problem_id`) REFERENCES `problem_statements` (`problem_id`),
+  CONSTRAINT `FKsjcq76oa92bm6gjbebp2spajm` FOREIGN KEY (`event_id`) REFERENCES `events` (`event_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `teams`
+--
+
+LOCK TABLES `teams` WRITE;
+/*!40000 ALTER TABLE `teams` DISABLE KEYS */;
+INSERT INTO `teams` VALUES (1,'2026-04-09 23:39:13.303000','Team API Smoke',NULL,NULL,NULL),(2,'2026-04-09 23:39:44.746000','Team API Smoke 20260409233944',NULL,NULL,NULL),(3,'2026-04-09 23:40:10.807000','Team API Smoke 20260409234010',NULL,NULL,NULL),(4,'2026-04-09 23:40:49.139000','Team API Smoke 20260409234049',NULL,NULL,NULL),(5,'2026-04-09 23:41:03.221000','Team API Smoke 20260409234103',NULL,NULL,NULL),(6,'2026-04-09 23:41:12.870000','Team API Smoke 20260409234112',NULL,NULL,NULL),(7,'2026-04-10 00:12:19.387000','00',NULL,NULL,NULL),(10,'2026-04-10 00:42:54.981000','Team API Smoke 20260410004254595 4d89413e',NULL,4,NULL),(11,'2026-04-10 00:45:16.699000','Team API Smoke 20260410004516308 4e56aafa',NULL,6,NULL),(12,'2026-04-10 00:46:51.994000','Team API Smoke 20260410004651607 d00743a7',NULL,8,NULL),(19,'2026-04-15 12:56:04.301000','we',NULL,19,NULL),(20,'2026-04-15 14:18:41.336000','war',NULL,21,NULL),(21,'2026-04-20 11:22:19.591000','Crazy',NULL,23,NULL),(25,'2026-04-20 12:34:16.407000','pop',NULL,25,NULL),(26,'2026-04-20 15:30:30.604000','cooking',NULL,27,NULL),(28,'2026-05-01 19:21:46.033000','supernova',NULL,29,NULL),(29,'2026-05-01 20:33:16.188000','AgriGuard Innovators 1777647796188',NULL,1,1),(30,'2026-05-12 13:24:00.902000','acecoders',NULL,38,NULL),(32,'2026-05-13 20:05:05.384000','coders',NULL,40,NULL);
+/*!40000 ALTER TABLE `teams` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-06-19 11:52:19
