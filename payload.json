@@ -1,0 +1,14 @@
+{
+    "submissionId": 8,
+    "aiScores": {},
+    "aiRemark": "",
+    "humanScores": {
+        "Innovation": 7,
+        "Technical Implementation": 8,
+        "Problem Relevance": 7,
+        "Use of AI Tools": 7,
+        "Feasibility": 8,
+        "Scalability": 7
+    },
+    "humanRemark": "Human eval"
+}
