@@ -89,20 +89,29 @@ public class EvaluationService {
         Application application = applicationRepository.findById(request.getSubmissionId())
                 .orElseThrow(() -> new RuntimeException("Submission not found with ID: " + request.getSubmissionId()));
 
-        Map<String, Double> aiScores = normalizeCriteriaMap(request.getAiScores());
-        Map<String, Double> humanScores = normalizeCriteriaMap(request.getHumanScores());
-        validateScores(aiScores, "AI");
-        validateScores(humanScores, "Human");
+        Evaluation evaluation = evaluationRepository.findByApplication_Id(application.getId()).orElseGet(Evaluation::new);
 
-        boolean aiProvided = hasAnyNonZeroScore(aiScores) || (request.getAiRemark() != null && !request.getAiRemark().trim().isEmpty());
-        boolean humanProvided = hasAnyNonZeroScore(humanScores) || (request.getHumanRemark() != null && !request.getHumanRemark().trim().isEmpty());
+        boolean aiIncoming = hasAnyNonZeroScore(request.getAiScores()) || (request.getAiRemark() != null && !request.getAiRemark().trim().isEmpty());
+        boolean humanIncoming = hasAnyNonZeroScore(request.getHumanScores()) || (request.getHumanRemark() != null && !request.getHumanRemark().trim().isEmpty());
 
-        if (!aiProvided && !humanProvided) {
+        if (!aiIncoming && !humanIncoming) {
             throw new RuntimeException("Provide at least one evaluation input (AI or Human) before submitting.");
         }
 
-        double aiAverage10 = aiScores.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
-        double humanAverage10 = humanScores.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        Map<String, Double> finalAiScores = aiIncoming ? normalizeCriteriaMap(request.getAiScores()) : readScoresJson(evaluation.getAiScoresJson());
+        Map<String, Double> finalHumanScores = humanIncoming ? normalizeCriteriaMap(request.getHumanScores()) : readScoresJson(evaluation.getHumanScoresJson());
+        
+        if (aiIncoming) validateScores(finalAiScores, "AI");
+        if (humanIncoming) validateScores(finalHumanScores, "Human");
+
+        String finalAiRemark = aiIncoming ? request.getAiRemark() : evaluation.getAiRemark();
+        String finalHumanRemark = humanIncoming ? request.getHumanRemark() : evaluation.getHumanRemark();
+
+        boolean aiProvided = hasAnyNonZeroScore(finalAiScores) || (finalAiRemark != null && !finalAiRemark.trim().isEmpty());
+        boolean humanProvided = hasAnyNonZeroScore(finalHumanScores) || (finalHumanRemark != null && !finalHumanRemark.trim().isEmpty());
+
+        double aiAverage10 = finalAiScores.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double humanAverage10 = finalHumanScores.values().stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
         double aiPercent = (aiAverage10 / 10.0) * 100.0;
         double humanPercent = (humanAverage10 / 10.0) * 100.0;
         double finalPercent;
@@ -114,29 +123,36 @@ public class EvaluationService {
             finalPercent = round2(aiPercent);
         }
 
-        Evaluation evaluation = evaluationRepository.findByApplication_Id(application.getId()).orElseGet(Evaluation::new);
         evaluation.setApplication(application);
         evaluation.setEvaluationStatus("COMPLETED");
-        evaluation.setAiScoresJson(writeJson(aiScores));
-        evaluation.setAiRemark(request.getAiRemark());
-        evaluation.setHumanScoresJson(writeJson(humanScores));
-        evaluation.setHumanRemark(request.getHumanRemark() == null ? null : request.getHumanRemark().trim());
+        evaluation.setAiScoresJson(writeJson(finalAiScores));
+        evaluation.setAiRemark(finalAiRemark);
+        evaluation.setHumanScoresJson(writeJson(finalHumanScores));
+        evaluation.setHumanRemark(finalHumanRemark == null ? null : finalHumanRemark.trim());
         evaluation.setTotalScore(finalPercent);
         evaluation.setComments(
-                request.getHumanRemark() != null && !request.getHumanRemark().trim().isEmpty()
-                        ? request.getHumanRemark().trim()
-                        : (request.getAiRemark() == null ? "Evaluation submitted." : request.getAiRemark().trim())
+                finalHumanRemark != null && !finalHumanRemark.trim().isEmpty()
+                        ? finalHumanRemark.trim()
+                        : (finalAiRemark == null ? "Evaluation submitted." : finalAiRemark.trim())
         );
         evaluation.setCreatedAt(evaluation.getCreatedAt() == null ? new Timestamp(System.currentTimeMillis()) : evaluation.getCreatedAt());
         evaluationRepository.save(evaluation);
 
-        upsertEvaluationScores(evaluation, humanScores);
+        upsertEvaluationScores(evaluation, finalHumanScores);
 
-        application.setSubmissionStatus("EVALUATED");
+        String currentStatus = application.getSubmissionStatus() != null ? application.getSubmissionStatus().toUpperCase() : "";
+        boolean isFinalized = "EVALUATED".equals(currentStatus) || "JUSTIFIED".equals(currentStatus) || "JUDGED".equals(currentStatus);
+
+        if (humanProvided) {
+            application.setSubmissionStatus("EVALUATED");
+        } else if (aiProvided && !isFinalized) {
+            application.setSubmissionStatus("AI_EVALUATED");
+        }
+
         application.setAiScore((int) Math.round(aiPercent));
-        application.setAiRemarks(request.getAiRemark());
+        application.setAiRemarks(finalAiRemark);
         application.setManualScore((int) Math.round(humanPercent));
-        application.setManualRemarks(request.getHumanRemark() == null ? null : request.getHumanRemark().trim());
+        application.setManualRemarks(finalHumanRemark == null ? null : finalHumanRemark.trim());
         application.setEvaluatedAt(new Timestamp(System.currentTimeMillis()));
         applicationRepository.save(application);
 
@@ -385,6 +401,10 @@ public class EvaluationService {
         } catch (Exception e) {
             return new LinkedHashMap<>();
         }
+    }
+
+    private Map<String, Double> readScoresJson(String json) {
+        return normalizeCriteriaMap(readScoreMap(json));
     }
 
     private double clamp3to10(double value) {
