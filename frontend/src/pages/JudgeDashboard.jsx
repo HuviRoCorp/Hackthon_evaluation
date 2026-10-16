@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getJudgeEvaluations, getJudgeReports, justifyJudgeDecision, unwrapApiData } from "../services/api";
+import { getJudgeEvaluations, justifyJudgeDecision, unwrapApiData } from "../services/api";
 import { getStoredUser } from "../utils/session";
 import "./judging.css";
 
@@ -10,7 +10,6 @@ function JudgeDashboard() {
   const navigate = useNavigate();
   const currentUser = getStoredUser();
   const [rows, setRows] = useState([]);
-  const [judgeReports, setJudgeReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeReport, setActiveReport] = useState(null);
   const [showSubmission, setShowSubmission] = useState(false);
@@ -23,13 +22,11 @@ function JudgeDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [evalRes, reportRes] = await Promise.all([getJudgeEvaluations(), getJudgeReports()]);
+      const evalRes = await getJudgeEvaluations();
       setRows(unwrapApiData(evalRes) || []);
-      setJudgeReports(unwrapApiData(reportRes) || []);
     } catch (error) {
       console.error(error);
       setRows([]);
-      setJudgeReports([]);
     } finally {
       setLoading(false);
     }

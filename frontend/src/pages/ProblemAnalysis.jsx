@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import "./problemanalysis.css";
 
@@ -46,7 +45,6 @@ const BarChart = ({ data }) => {
 };
 
 function ProblemAnalysis() {
-  const navigate = useNavigate();
   const baseURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080/api";
 
   const [summary, setSummary] = useState(null);
@@ -56,11 +54,7 @@ function ProblemAnalysis() {
   const [error, setError] = useState("");
   const [selectedProblem, setSelectedProblem] = useState(null);
 
-  useEffect(() => {
-    loadAnalysisData();
-  }, []);
-
-  const loadAnalysisData = async () => {
+  const loadAnalysisData = useCallback(async () => {
     try {
       setLoading(true);
       const [summaryRes, chartRes, problemsRes] = await Promise.all([
@@ -79,7 +73,11 @@ function ProblemAnalysis() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [baseURL]);
+
+  useEffect(() => {
+    loadAnalysisData();
+  }, [loadAnalysisData]);
 
   const handleViewDetails = async (problemId) => {
     try {

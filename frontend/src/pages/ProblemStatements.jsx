@@ -99,19 +99,6 @@ function ProblemStatements() {
     navigate(`/apply/${problemId}`);
   };
 
-  const formatMultilineDescription = (description) => {
-    const text = (description || "").trim();
-    if (!text) {
-      return "No description available.";
-    }
-    const words = text.split(/\s+/);
-    const lines = [];
-    const chunkSize = Math.max(5, Math.ceil(words.length / 15));
-    for (let i = 0; i < words.length; i += chunkSize) {
-      lines.push(words.slice(i, i + chunkSize).join(" "));
-    }
-    return lines.join("\n");
-  };
 
   return (
     <div className="ps-page">
